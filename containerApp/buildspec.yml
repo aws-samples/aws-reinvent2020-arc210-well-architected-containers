@@ -1,0 +1,31 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo -n "$CODEBUILD_BUILD_ID" | sed "s/.*:\([[:xdigit:]]\{7\}\).*/\1/" > /tmp/build_id.out
+      - printf "%s:%s" "$REPOSITORY_URI" "$(cat /tmp/build_id.out)" > /tmp/build_tag.out
+      - printf '{"ImageURI":"%s"}' $REPOSITORY_URI:$(cat /tmp/build_id.out) > imageDetail.json
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+  build:
+    commands:
+      - cd containerApp/
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI -t "$(cat /tmp/build_tag.out)" .
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push "$(cat /tmp/build_tag.out)"
+      - while [ $(aws ecr describe-images --repository-name $REPOSITORY_NAME --image-id imageTag=$(cat /tmp/build_id.out) | jq -r '.imageDetails[].imageScanStatus.status') != "COMPLETE" ]; do sleep 1; done
+      - if [ $(aws ecr describe-images --repository-name $REPOSITORY_NAME --image-id imageTag=$(cat /tmp/build_id.out) | jq '.imageDetails[].imageScanFindingsSummary.findingSeverityCounts.HIGH') -ge 1 ];then echo "High severtity vulnerabilites found" && exit 1;else echo "Image clean";fi
+artifacts:
+  files:
+    - imageDetail.json
+    - containerApp/appspec.yaml
+    - containerApp/taskdef.json
+  discard-paths: yes
+
+
+    

@@ -1,0 +1,35 @@
+{
+    "executionRoleArn": "arn:aws:iam::614658524125:role/ecsTaskExecutionRole",
+    "containerDefinitions": [
+        {
+            "dnsSearchDomains": null,
+            "environmentFiles": null,
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "secretOptions": null,
+                "options": {
+                    "awslogs-group": "/ecs/arc210-taskdef",
+                    "awslogs-region": "ap-southeast-2",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "portMappings": [
+                {
+                    "hostPort": 80,
+                    "protocol": "tcp",
+                    "containerPort": 80
+                }
+            ],
+            "image": <IMAGE>,
+            "name": "arc210-containerdef"
+        }
+    ],
+    "memory": "512",
+    "taskRoleArn": "arn:aws:iam::614658524125:role/ecsTaskExecutionRole",
+    "family": "arc210-taskdef",
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "networkMode": "awsvpc",
+    "cpu": "256"
+}

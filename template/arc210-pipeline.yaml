@@ -1,0 +1,332 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ARC210 Pipeline deployment template
+
+Parameters:
+
+  githubAccessToken:
+    Description: Github personal access token
+    Type: String
+    NoEcho: true
+
+  githubUsername:
+    Description: Github username
+    Type: String
+
+  githubRepo:
+    Description: Github repository name
+    Type: String
+    Default: aws-arc210
+
+  clusterName:
+    Description: Amazon ECS Cluster Name
+    Type: String
+    Default: reinvent-arc210-cluster
+    
+  serviceName:
+    Description: Amazon ECS Service Name 
+    Type: String
+    Default: reinvent-arc210-service
+
+Resources:
+
+  # Create deployment resources including ECR repo, Codebuild project, Codepipeline and associated IAM roles.
+
+  CodeDeployApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ComputePlatform: ECS
+
+  ARC210Repo:
+    Type: AWS::ECR::Repository
+    Properties: 
+      ImageScanningConfiguration: 
+        scanOnPush: "true"
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Ref 'AWS::StackName'
+      ServiceRole: !Ref 'CodeBuildRole'
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: containerApp/buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+        Type: LINUX_CONTAINER
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: REPOSITORY_URI
+            Type: PLAINTEXT
+            Value: !Join 
+              - ''
+              - - !Ref 'AWS::AccountId'
+                - .dkr.ecr.
+                - !Ref 'AWS::Region'
+                - .amazonaws.com
+                - /
+                - !Ref ARC210Repo
+          - Name: AWS_DEFAULT_REGION
+            Type: PLAINTEXT
+            Value: !Ref "AWS::Region"
+          - Name: REPOSITORY_NAME
+            Type: PLAINTEXT  
+            Value: !Ref ARC210Repo
+
+  CodeBuildRole:
+    Description: Creating service role in IAM for AWS CodeBuild
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+      Path: /
+      Policies:
+        - PolicyName: ARCH210CodeBuildRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - ecr:GetAuthorizationToken
+                - ecr:BatchCheckLayerAvailability
+                - ecr:GetDownloadUrlForLayer
+                - ecr:GetRepositoryPolicy
+                - ecr:DescribeRepositories
+                - ecr:ListImages
+                - ecr:DescribeImages
+                - ecr:BatchGetImage
+                - ecr:GetLifecyclePolicy
+                - ecr:GetLifecyclePolicyPreview
+                - ecr:ListTagsForResource
+                - ecr:DescribeImageScanFindings
+                - ecr:InitiateLayerUpload
+                - ecr:UploadLayerPart
+                - ecr:CompleteLayerUpload
+                - ecr:PutImage
+              Resource: '*'
+      RoleName: !Join
+        - '-'
+        - - !Ref 'AWS::StackName'
+          - CodeBuild
+    Type: AWS::IAM::Role          
+
+  CodePipelineArtifactStoreBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref ARC210artifact3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowCodeBuildArtifactAccess
+            Effect: Allow
+            Principal: 
+              AWS:
+                - !GetAtt CodeBuildRole.Arn
+            Action: '*'
+            Resource: !Join 
+              - ''
+              - - !GetAtt 
+                  - ARC210artifact3Bucket
+                  - Arn
+                - /*
+
+  ARC210artifact3Bucket:
+     Type: AWS::S3::Bucket
+     Properties: 
+       AccessControl: BucketOwnerFullControl
+       BucketName: !Sub arc210-s3-artifacts-${AWS::StackName}
+
+  ARC210PipelineWebhook:
+    Type: 'AWS::CodePipeline::Webhook'
+    Properties:
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: !Ref githubAccessToken #'{{resolve:secretsmanager:my-github-token:SecretString:my-github-token}}'
+      Filters:
+        - JsonPath: $.ref
+          MatchEquals: 'refs/heads/{Branch}'
+      TargetPipeline: !Ref ARCH210Pipeline
+      TargetAction: SourceAction
+      Name: ARC210PipelineWebhook
+      TargetPipelineVersion: !GetAtt 
+        - ARCH210Pipeline
+        - Version
+      RegisterWithThirdParty: true     
+
+  ARCH210Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties: 
+      ArtifactStore: 
+        Type: S3
+        Location: 
+          !Ref ARC210artifact3Bucket
+      Name: ARC210-Pipeline
+      RoleArn: !GetAtt 
+        - ARCH210PipelineRole
+        - Arn
+      Stages:
+        - Name: download-source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              OutputArtifacts:
+                - Name: SourceOutput
+              Configuration:
+                Owner: !Ref githubUsername
+                Repo: !Ref githubRepo
+                Branch: main
+                OAuthToken: !Ref githubAccessToken #'{{resolve:secretsmanager:my-github-token:SecretString:my-github-token}}'
+                PollForSourceChanges: false
+              RunOrder: 1
+        - Name: deploy-infrastructure
+          Actions:
+            - Name: Deploy
+              InputArtifacts:
+                - Name: SourceOutput
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                ActionMode: CREATE_UPDATE 
+                TemplatePath: SourceOutput::template/arc210-template.yaml
+                StackName: !Sub infrastructure-${AWS::StackName}
+                RoleArn: !GetAtt ARCH210CfnServiceRole.Arn
+                Capabilities: CAPABILITY_IAM
+        - Name: build-container
+          Actions:
+            - Name: Build
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput  
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              RunOrder: 1
+        - Name: deploy-container
+          Actions:
+            - Name: Deploy
+              InputArtifacts:
+                - Name: BuildOutput
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CodeDeployToECS
+              Configuration:
+                ApplicationName: !Ref CodeDeployApplication
+                DeploymentGroupName: bob
+                TaskDefinitionTemplateArtifact: BuildOutput
+                TaskDefinitionTemplatePath: taskdef.json
+                AppSpecTemplateArtifact: BuildOutput
+                AppSpecTemplatePath: appspec.yaml
+                Image1ArtifactName: BuildOutput
+                Image1ContainerName: IMAGE
+              RunOrder: 1
+
+  ARCH210CfnServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: svcCloudFormation
+      Path: /service/
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  ARCH210PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - codepipeline.amazonaws.com
+              - cloudformation.amazonaws.com
+          Action: 
+            - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ARCH210PipelineRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Action:
+                - codedeploy:CreateDeployment
+                - codedeploy:GetApplication
+                - codedeploy:GetApplicationRevision
+                - codedeploy:GetDeployment
+                - codedeploy:GetDeploymentConfig
+                - codedeploy:RegisterApplicationRevision
+                - ecs:RegisterTaskDefinition
+                - iam:PassRole
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - elasticbeanstalk:*
+                - ec2:*
+                - elasticloadbalancing:*
+                - autoscaling:*
+                - cloudwatch:*
+                - s3:*
+                - sns:*
+                - cloudformation:*
+                - rds:*
+                - sqs:*
+                - ecs:*
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - codebuild:BatchGetBuilds
+                - codebuild:StartBuild
+                - codebuild:BatchGetBuildBatches
+                - codebuild:StartBuildBatch
+              Resource: '*'
+
+Outputs:
+
+  ECSClusterName:
+    Description: ECS Cluster Name
+    Value: !Ref clusterName
+    Export:
+      Name: !Sub infrastructure-${AWS::StackName}-ClusterName
+
+  ECSServiceName:
+    Description: ECS Service Name
+    Value: !Ref serviceName
+    Export:
+      Name: !Sub infrastructure-${AWS::StackName}-ServiceName
+
+  CodeDeployApp:
+    Description: CodeDeploy App Name
+    Value: !Ref CodeDeployApplication
+    Export:
+      Name: !Sub infrastructure-${AWS::StackName}-CodeDeployApp  
