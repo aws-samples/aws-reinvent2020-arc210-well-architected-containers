@@ -43,8 +43,6 @@ Once you have sucessfully forked the project, continue on to the next steps.
 
 To get started, you will need to deploy the base stack. Click on the button below to deploy the base stack using AWS CloudFormation.
 
-[![Launch ARC210](images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=arc210-stack&templateURL=https://catsndogs-assets.s3.amazonaws.com/arc210-templates/arc210-template.yaml)
-
 1. On the **Create stack** screen click **Next**.
 
 2. On the **Specify stack details** screen enter the following for the stack parameters, and then click **Next**.:
@@ -103,7 +101,6 @@ In this step you will create a DeploymentGroup that will be used by Amazon CodeD
 
     11. Click **Create deployment group**.
 
-
 ## Update the CodePipeline Pipeline
 
 Now that you've created the
@@ -116,7 +113,7 @@ Now that you've created the
 
 4. Scroll down to the **Deploy** stage and click on the **Edit stage** button.
 
-5. Once the stage becomed editable, two samll icons will appear under the workd **Depoy**. Click on the one which looks like a small rectangle with a line going up and to the right.
+5. Once the stage becomes editable, two small icons will appear under the world **Deploy**. Click on the one which looks like a small rectangle with a line going up and to the right.
 
 6. On the **Edit action** screen:
 
@@ -161,9 +158,27 @@ Automatically recover from failure | Test recovery procedures | Scale horizontal
 
 Here is what we've just deployed.
 
-Let's test the application we've just deploy is up and running
+[![Launch ARC210](images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=arc210-stack&templateURL=https://catsndogs-assets.s3.amazonaws.com/arc210-templates/arc210-template.yaml)
 
-> TODO: Instuctions to find the **LoadBalancerDnsName** from the CloudFormation stack outputs.
+### Confirming everything deployed correctly
+
+Let's test that the application which we just deployed is up and running.
+
+1. In the AWS Console, ensure you have the correct region selected.
+
+2. In the Management Tools search for CloudFormation and click on the link that appears.
+
+3. Click on the CloudFormation stack that was created as part of this lab. It is probably called **arch210-stack**. 
+
+4. Choose the **Outputs** tab from stack details (The right hand side of the screen).
+
+5. You should see a value labelled **LoadBalancerDnsName** value. This is the URL of the load balancer which will host the application.
+
+6. Click on the link an ensure that you are successfully able to connect to the the **Welcome to nginx** home page.
+
+#### Checkpoint:
+
+Nice work! You have verified that your containerized application is working as exepcted. Next, lets make some changes to see our blue-green deployments in action.
 
 ### Push changes and see blue-green deployments in action
 
