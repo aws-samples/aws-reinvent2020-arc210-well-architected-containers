@@ -51,7 +51,7 @@ To get started, you will need to deploy the base stack. Click on the button belo
 
     1. **githubUsername**: Enter your Github username. 
 
-    2. **githubRepo**: Enter the name of the forked Github repository. This should be **aws-arc210**.
+    2. **githubRepo**: Enter the name of the forked Github repository. This should be **aws-reinvent2020-arc210-well-architected-containers**.
 
     3. **githubAccessToken**: Enter the Github access token you created above.
 
