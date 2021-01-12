@@ -63,7 +63,7 @@ To get started, you will need to deploy the base stack. Click on the button belo
 
 5. Finally, click **Create stack**.
 
-![Arch Diagram](aws-reinvent2020-arc210-well-architected-containers/images/arc_diagram.png)
+![Arch Diagram](/images/arc_diagram.png)
 
 ## Create the CodeBuild Deployment Group
 
