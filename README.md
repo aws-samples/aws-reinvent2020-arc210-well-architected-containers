@@ -63,6 +63,8 @@ To get started, you will need to deploy the base stack. Click on the button belo
 
 5. Finally, click **Create stack**.
 
+![Arch Diagram](aws-reinvent2020-arc210-well-architected-containers/images/arc_diagram.png)
+
 ## Create the CodeBuild Deployment Group
 
 In this step you will create a DeploymentGroup that will be used by Amazon CodeDeploy to manage the blue-green deployment of application updates to the Amazon ECS service that was deployed as part of the base environment.
