@@ -212,18 +212,6 @@ In this task, you will make a change to the project and monitor the **SAFE** dep
 
 After about 10-15 minutes, the deployment should complete. Nice work! You have just updated the application, committed the change and safely deployed it using the blue-green deployment pattern.
 
-### Push changes and see container image scanning in actions
-
-In this final task, you will update the container image used by the application to one which contains vulnerabilites. You will monitor the deployment to see how the ECRs native container image scanning solution can be used to stop deployments of artifacts that container vulnerabilites. 
-
-1. Open the [AWS CodePipline management console](console.aws.amazon.com/ecr/repositories)
-
-2. Ensure you have the **correct region** selected.
-
-#### Checkpoint:
-
-Congratulations! You've seen how we can use Amazon ECRs native container image scanning functionality to prevent vulnerable container images from making their way in to production.
-
 ## Additional container resources
 
 [Domain reduces scaling time for their mobile API services with Amazon ECS](https://aws.amazon.com/blogs/containers/domain-reduces-scaling-time-for-their-mobile-api-services-with-amazon-ecs/ "AWS Container Blog")
