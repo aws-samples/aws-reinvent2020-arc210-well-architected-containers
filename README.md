@@ -1,5 +1,5 @@
 
-# Well Architected Containers - Innovate faster with using the right tools
+# Well-architected containers: 10x performance with DevOps
 
 The purpose of this project is to showcase safe and secure software deployments using AWS container management and developer tools. The project includes a deloyment pipeline which enforces image scanning using Amazon ECRs image scanning functionality. The pipeline is also configured to do blue-green deployments using Amazon CodeDepoy.
 
