@@ -182,57 +182,41 @@ Nice work! You have verified that your containerized application is working as e
 
 In this task, you will make a change to the project and monitor the **SAFE** deployment that is done using AWS CodeDeploy and the ECS blue-green deployment provider.
 
+1. Browse to the forked GitHub repository that you created in step 1 of the **Prerequisites**.
+
+2. Open the **containerApp** folder and find the **index.html** file. Click on the **index.html** file.
+
+3. With **index.html** open, locate the small pencil icon in the top right of the file viwer window. Click the icon to edit the file.
+
+4. On **line 15** change the value of the **background** property to different colour. For example, **red** or **green** or **blue**.
+
+5. Scroll down. In the **Commit changes** form, enter a title for the change, i.e. **Changing background colour**. 
+
+6. Click the **Commit change** button.
+
+7. Open the [AWS CodePipline management console](console.aws.amazon.com/codesuite/codepipeline/pipelines)
+
+8. Click on the pipeline called **ARC210-Pipeline**.
+
+9. The pipeline should have started to run. You can confirm this by looking for the commit comment next to one or more of the stages.
+
+10. Wait for the pipeline to reach the **Deploy** stage. After a few seconds, you should see a **Details** link appear. Click on that link to reveal details about the status of the deployment.
+
+11. Monitor the progress of the deployment using the **Deployment status** and **Traffic shifting progress** information.
+
+12. From time to time, check the the URL you recorded earlier from the **LoadBalancerDnsName** CloudFormation output. You might need to click the browsers refresh button. You should see a certain number of requests hitting the new version of the application with the updated background colour.
+
+#### Checkpoint:
+
+After about 10-15 minutes, the deployment should complete. Nice work! You have just updated the application, committed the change and safely deployed it using the blue-green deployment pattern.
+
 ### Push changes and see container image scanning in actions
 
-In this task, you will update the container image used by the application to one which container vulnerabilites. You will monitor the deploymen to see how the ECRs native container image scanning solution can be used to stop deployments of artifacts that container vulnerabilites. 
+In this final task, you will update the container image used by the application to one which contains vulnerabilites. You will monitor the deployment to see how the ECRs native container image scanning solution can be used to stop deployments of artifacts that container vulnerabilites. 
 
-### Push change and see how blue-green deployments can save your bacon!
+#### Checkpoint:
 
-In this task, you will generate load to cause the ECS service to scale. As more tasks are added to the cluster, the MemoryReservation metric for the cluster will increase. Because the EC2 Spot fleet Auto Scaling is set up to scale based on MemoryReservation, this will cause the underlying EC2 Spot fleet to scale. 
-
-### Launch load generator to tirgger some scaling
-
-In this task, you will generate load to cause the ECS service to scale. As more tasks are added to the cluster, the MemoryReservation metric for the cluster will increase. Because the EC2 Spot fleet Auto Scaling is set up to scale based on MemoryReservation, this will cause the underlying EC2 Spot fleet to scale. 
-
-You will create a CloudFormation stack containing a load generator that sends load to the cats and dogs containers, and then verify the tasks scale as expected.
-
-1. Let's get started by deploying the load generator instance by clicking on this button:
-
-    [![Launch load generator](images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-2#/stacks/new?stackName=ecsServiceloadgenerator&templateURL=https://s3.amazonaws.com/mythical-mysfits-website/fargate/core.yml)
-
-4. In **Stack name**, enter **ecsServiceloadgenerator**.
-
-5. Leave the LabSetupStackName parameter at its default, unless you changed the name of the CloudFormation stack from the Lab setup.
-
-6. Click **Next**, then click **Next** again, then click **Create**.
-
-7. Wait until the stack status is **CREATE_COMPLETE**.
-
-**Note:** the LoadGenerator instance uses the Vegeta load generator. More information about this is available at: https://github.com/tsenart/vegeta . The CloudFormation template injects the URL of your load balancer so Vegeta sends requests to the correct endpoint
-
-8. In the AWS Console, under **Management Tools** click **CloudWatch**.
-
-9. Click **Metrics**.
-
-10.	On the **All metrics** tab, click **ApplicationELB**, then **Per AppELB, per AZ, per TG Metrics**.
-
-11.	Find the LoadBalancer where the name starts with **arc210-ARC210** and select the **RequestCount** metrics.
-
-12.	On the **Graphed metrics** tab, change the **Statistic** to **Sum**, and the **Period to 10 seconds**.
-
-13.	After a minute or two you should start to see an increase in request counts, to around 1500 each for the cats and dogs target groups. Note that the simpleHomepage target group is not accessed by the load generator.
-
-14.	Click **Alarms**.
-
-15.	After the load has been sustained for two minutes, the **Lab2-CatsScaleUpAlarm** and **Lab2-DogsScaleUpAlarm** should enter the ALARM state.
-
-16.	In the AWS Console, under **Compute** click **EC2 Container Service**.
-
-17.	In the ECS console click **Clusters**, then click the cluster **catsndogsECScluster**.
-
-18.	Click Services and click either the cats or dogs service.
-
-19.	Click the Events tab. You should see events as ECS adds more tasks to the Service
+After about 10-15 minutes, the deployment should complete. Nice work! You have just updated the application, committed the change and safely deployed it using the blue-green deployment pattern.
 
 ## Additional container resources
 
