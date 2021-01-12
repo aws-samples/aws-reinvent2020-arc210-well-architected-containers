@@ -218,3 +218,11 @@ You will create a CloudFormation stack containing a load generator that sends lo
 18.	Click Services and click either the cats or dogs service.
 
 19.	Click the Events tab. You should see events as ECS adds more tasks to the Service
+
+## Additional container resources
+
+[Domain reduces scaling time for their mobile API services with Amazon ECS](https://aws.amazon.com/blogs/containers/domain-reduces-scaling-time-for-their-mobile-api-services-with-amazon-ecs/ "AWS Container Blog")
+
+[Self-Paced Workshop - Amazon ECS on AWS Fargate](https://github.com/aws-samples/amazon-ecs-mythicalmysfits-workshop "From Monoliths to Microservices with Mythical Mysfits")
+
+[Self-Paced Workshop – Amazon ECS Capacity Providers](https://ecsworkshop.com/capacity_providers/ "Amazon ECS Workshop Series")
