@@ -43,6 +43,8 @@ Once you have sucessfully forked the project, continue on to the next steps.
 
 To get started, you will need to deploy the base stack. Click on the button below to deploy the base stack using AWS CloudFormation.
 
+[![Launch ARC210](images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=arc210-stack&templateURL=https://catsndogs-assets.s3.amazonaws.com/arc210-templates/arc210-template.yaml)
+
 1. On the **Create stack** screen click **Next**.
 
 2. On the **Specify stack details** screen enter the following for the stack parameters, and then click **Next**.:
@@ -184,9 +186,9 @@ In this task, you will make a change to the project and monitor the **SAFE** dep
 
 1. Browse to the forked GitHub repository that you created in step 1 of the **Prerequisites**.
 
-2. Open the **containerApp** folder and find the **index.html** file. Click on the **index.html** file.
+2. Open the **containerApp/** folder and find the **containerApp/index.html** file. Click on the **containerApp/index.html** file.
 
-3. With **index.html** open, locate the small pencil icon in the top right of the file viwer window. Click the icon to edit the file.
+3. With **containerApp/index.html** open, locate the small pencil icon in the top right of the file viwer window. Click the icon to edit the file.
 
 4. On **line 15** change the value of the **background** property to different colour. For example, **red** or **green** or **blue**.
 
@@ -214,9 +216,13 @@ After about 10-15 minutes, the deployment should complete. Nice work! You have j
 
 In this final task, you will update the container image used by the application to one which contains vulnerabilites. You will monitor the deployment to see how the ECRs native container image scanning solution can be used to stop deployments of artifacts that container vulnerabilites. 
 
+1. Open the [AWS CodePipline management console](console.aws.amazon.com/ecr/repositories)
+
+2. Ensure you have the **correct region** selected.
+
 #### Checkpoint:
 
-After about 10-15 minutes, the deployment should complete. Nice work! You have just updated the application, committed the change and safely deployed it using the blue-green deployment pattern.
+Congratulations! You've seen how we can use Amazon ECRs native container image scanning functionality to prevent vulnerable container images from making their way in to production.
 
 ## Additional container resources
 
