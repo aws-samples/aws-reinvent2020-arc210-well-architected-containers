@@ -61,8 +61,6 @@ To get started, you will need to deploy the base stack. Click on the button belo
 
 5. Finally, click **Create stack**.
 
-![Arch Diagram](/images/arc_diagram.png)
-
 ## Create the CodeBuild Deployment Group
 
 In this step you will create a DeploymentGroup that will be used by Amazon CodeDeploy to manage the blue-green deployment of application updates to the Amazon ECS service that was deployed as part of the base environment.
@@ -158,7 +156,7 @@ Automatically recover from failure | Test recovery procedures | Scale horizontal
 
 Here is what we've just deployed.
 
-[![Launch ARC210](images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=arc210-stack&templateURL=https://catsndogs-assets.s3.amazonaws.com/arc210-templates/arc210-template.yaml)
+![Arch Diagram](/images/arc_diagram.png)
 
 ### Confirming everything deployed correctly
 
